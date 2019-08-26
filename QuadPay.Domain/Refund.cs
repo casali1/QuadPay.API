@@ -3,13 +3,14 @@ using System;
 namespace QuadPay.Domain {
     public class Refund {
 
-        public Guid Id { get; }
+        public Guid Id { get; set; }
         public string IdempotencyKey { get; }
-        public DateTime Date { get; }
-        public decimal Amount { get; }
+        public DateTime Date { get; set; }
+        public decimal Amount { get; set; }
 
-        public Refund(string idempotencyKey, decimal amount) {
-            // TODO
+        public Refund(decimal amount)
+        {
+            Amount = amount;
         }
 
     }

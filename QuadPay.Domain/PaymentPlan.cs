@@ -19,8 +19,6 @@ namespace QuadPay.Domain
 
         public PaymentPlan(decimal amount, int installmentCount = 4, int installmentIntervalDays = 14)
         {
-            // TODO
-            //Installment 
             InitializeInstallments(amount, installmentCount, installmentIntervalDays);
         }
 
@@ -80,7 +78,6 @@ namespace QuadPay.Domain
         public IList<Installment> PaidInstallments()
         {
             var paidInstallments = new List<Installment>();
-            //paidInstallments.
             return new List<Installment>();
         }
 
@@ -136,6 +133,7 @@ namespace QuadPay.Domain
         {
             var activeAccount = Installments.Where(x => x.Id == installmentId);
             var refund = 0M;
+
             foreach (var singleInstallment in activeAccount)
             {
                 if (singleInstallment.IsPaid && !singleInstallment.AccountClosed)
@@ -145,6 +143,14 @@ namespace QuadPay.Domain
                 }
                 singleInstallment.AccountClosed = true;
             }
+
+            var closingAccount = activeAccount.FirstOrDefault();
+            var refundAccount = new Refund(refund)
+            {
+                Id = closingAccount.Id,
+                Date = DateTime.Now
+            };
+
             return refund;
         }
 

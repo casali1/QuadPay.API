@@ -34,6 +34,7 @@ namespace QuadPay.Test
             var firstInstallment = paymentPlan.FirstInstallment();
             paymentPlan.MakePayment(25, firstInstallment.Id);
             var cashRefundAmount = paymentPlan.ApplyRefund(new Refund(Guid.NewGuid().ToString(), 100));
+
             Assert.Equal(25, cashRefundAmount);
             Assert.Equal(0, paymentPlan.OustandingBalance());
         }
@@ -45,6 +46,7 @@ namespace QuadPay.Test
             paymentPlan.MakePayment(25, firstInstallment.Id);
             var secondInstallment = paymentPlan.NextInstallment();
             paymentPlan.MakePayment(25, secondInstallment.Id);
+
             Assert.Equal(50, paymentPlan.OustandingBalance());
         }
 

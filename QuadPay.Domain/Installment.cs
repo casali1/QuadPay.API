@@ -34,6 +34,20 @@ namespace QuadPay.Domain
             }
         }
 
+        private bool accountClosed = false;
+        public bool AccountClosed
+        {
+            get
+            {
+                // TODO
+                return accountClosed;
+            }
+            set
+            {
+                accountClosed = value;
+            }
+        }
+
         public bool IsDefaulted
         { 
             get

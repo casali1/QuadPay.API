@@ -17,7 +17,8 @@ namespace QuadPay.Domain
         public int InstallmentIntervalOfDays { get; set; }
 
 
-        public PaymentPlan(decimal amount, int installmentCount = 4, int installmentIntervalDays = 14) {
+        public PaymentPlan(decimal amount, int installmentCount = 4, int installmentIntervalDays = 14)
+        {
             // TODO
             //Installment 
             InitializeInstallments(amount, installmentCount, installmentIntervalDays);
@@ -26,14 +27,20 @@ namespace QuadPay.Domain
         // Installments are paid in order by Date
         public Installment NextInstallment()
         {
-            // TODO
+            var activeAccount = Installments.Where(x => x.Id == Id);
 
+            foreach (var singleInstallment in activeAccount)
+            {
+                if (!singleInstallment.IsPaid) return singleInstallment;
+            }
 
             return new Installment();
         }
 
         public Installment FirstInstallment()
         {
+            if (Install.Amount < 0 || CountOfInstallations < 1) throw new ArgumentException();
+
             var firstInstall = new Installment()
             {
                 Id = Install.Id,
@@ -54,12 +61,12 @@ namespace QuadPay.Domain
         public decimal OustandingBalance(Guid installmentId)
         {
             var activeAccount = Installments.Where(x => x.Id == installmentId);
-            var refund = 0M;
+            var balance = 0M;
             foreach (var singleInstallment in activeAccount)
             {
-                if (singleInstallment.IsPaid) refund = refund + singleInstallment.Amount;
+                if (!singleInstallment.IsPaid && !singleInstallment.AccountClosed) balance = balance + singleInstallment.Amount;
             }
-            return refund;
+            return balance;
         }
 
         public decimal AmountPastDue(DateTime currentDate)
@@ -87,23 +94,24 @@ namespace QuadPay.Domain
         {
             var intervals = InstallmentIntervalOfDays;
 
-            for (int i=1; i < CountOfInstallations; i++)
+            for (int i = 1; i < CountOfInstallations; i++)
             {
                 var pendingInstallment = new Installment()
                 {
                     Id = Install.Id,
                     Amount = Install.Amount * 1 / CountOfInstallations,
-                    Date = Install.Date.AddDays(intervals) 
+                    Date = Install.Date.AddDays(intervals)
                 };
 
                 Installments.Add(pendingInstallment);
                 intervals = intervals + InstallmentIntervalOfDays;
             }
-          
+
             return Installments;
         }
 
-        public decimal MaximumRefundAvailable() {
+        public decimal MaximumRefundAvailable()
+        {
             // TODO
             return 0;
         }
@@ -113,7 +121,7 @@ namespace QuadPay.Domain
         {
             var activeAccount = Installments.Where(x => x.Id == installmentId);
 
-            foreach(var singleInstallment in activeAccount)
+            foreach (var singleInstallment in activeAccount)
             {
                 if (!singleInstallment.IsPaid && singleInstallment.Amount == amount)
                 {
@@ -123,9 +131,6 @@ namespace QuadPay.Domain
             }
         }
 
-
-
-
         // Returns: Amount to refund via PaymentProvider
         public decimal ApplyRefund(Guid installmentId)
         {
@@ -133,11 +138,12 @@ namespace QuadPay.Domain
             var refund = 0M;
             foreach (var singleInstallment in activeAccount)
             {
-                if (singleInstallment.IsPaid)
+                if (singleInstallment.IsPaid && !singleInstallment.AccountClosed)
                 {
                     refund = refund + singleInstallment.Amount;
                     singleInstallment.IsPaid = false;
                 }
+                singleInstallment.AccountClosed = true;
             }
             return refund;
         }
@@ -158,7 +164,7 @@ namespace QuadPay.Domain
             InstallmentIntervalOfDays = installmentIntervalDays;
 
             Installments = new List<Installment>();
-            FirstInstallment();                 
+            FirstInstallment();           
         }
     }
 }

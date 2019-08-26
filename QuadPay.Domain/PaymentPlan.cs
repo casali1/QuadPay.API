@@ -51,12 +51,15 @@ namespace QuadPay.Domain
             return firstInstall;
         }
 
-        public decimal OustandingBalance()
+        public decimal OustandingBalance(Guid installmentId)
         {
-            // TODO
-
-
-            return 0;
+            var activeAccount = Installments.Where(x => x.Id == installmentId);
+            var refund = 0M;
+            foreach (var singleInstallment in activeAccount)
+            {
+                if (singleInstallment.IsPaid) refund = refund + singleInstallment.Amount;
+            }
+            return refund;
         }
 
         public decimal AmountPastDue(DateTime currentDate)
@@ -112,7 +115,7 @@ namespace QuadPay.Domain
 
             foreach(var singleInstallment in activeAccount)
             {
-                if (singleInstallment.IsPaid)
+                if (!singleInstallment.IsPaid && singleInstallment.Amount == amount)
                 {
                     singleInstallment.IsPaid = true;
                     break;
@@ -124,10 +127,19 @@ namespace QuadPay.Domain
 
 
         // Returns: Amount to refund via PaymentProvider
-        public decimal ApplyRefund(Refund refund)
+        public decimal ApplyRefund(Guid installmentId)
         {
-            // TODO
-            return 0;
+            var activeAccount = Installments.Where(x => x.Id == installmentId);
+            var refund = 0M;
+            foreach (var singleInstallment in activeAccount)
+            {
+                if (singleInstallment.IsPaid)
+                {
+                    refund = refund + singleInstallment.Amount;
+                    singleInstallment.IsPaid = false;
+                }
+            }
+            return refund;
         }
 
 
